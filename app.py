@@ -4,8 +4,10 @@ import os
 
 app = Flask(__name__)
 
+# Definimos el modelo directamente en el cliente o en la llamada
 client = InferenceClient(
-    api_key=os.getenv("HF_TOKEN")
+    model="google/gemma-2-2b-it",
+    token=os.getenv("HF_TOKEN")
 )
 
 @app.route("/")
@@ -14,8 +16,7 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-
-    data = request.get_json()
+    data = request.get_json() or {}
 
     question = data.get("question", "")
     language = data.get("language", "de")
@@ -27,8 +28,7 @@ def chat():
         "pl": "Polish"
     }.get(language, "German")
 
-    prompt = f"""
-You are the customer service assistant of GlobalTrade24 GmbH.
+    prompt = f"""You are the customer service assistant of GlobalTrade24 GmbH.
 
 Rules:
 - Answer only in {language_name}
@@ -48,9 +48,7 @@ Customer:
 """
 
     try:
-
         completion = client.chat.completions.create(
-            model="google/gemma-2-2b-it",
             messages=[
                 {
                     "role": "user",
@@ -67,12 +65,12 @@ Customer:
         })
 
     except Exception as e:
-
         print("ERROR:", str(e))
-
         return jsonify({
             "answer": f"AI Error: {str(e)}"
         }), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
