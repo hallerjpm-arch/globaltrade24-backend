@@ -8,20 +8,24 @@ client = InferenceClient(
     api_key=os.getenv("HF_TOKEN")
 )
 
+@app.route("/")
+def home():
+    return "GlobalTrade24 Backend Running"
+
 @app.route("/chat", methods=["POST"])
 def chat():
 
     data = request.get_json()
 
-    question = data.get("question","")
-    language = data.get("language","de")
+    question = data.get("question", "")
+    language = data.get("language", "de")
 
     language_name = {
-        "de":"German",
-        "fr":"French",
-        "es":"Spanish",
-        "pl":"Polish"
-    }.get(language,"German")
+        "de": "German",
+        "fr": "French",
+        "es": "Spanish",
+        "pl": "Polish"
+    }.get(language, "German")
 
     prompt = f"""
 You are the customer service assistant of GlobalTrade24 GmbH.
@@ -30,7 +34,14 @@ Rules:
 - Answer only in {language_name}
 - Be professional
 - Be concise
-- Help with orders, returns, shipping and products
+- Help with:
+  - orders
+  - shipping
+  - delivery times
+  - customs
+  - products
+  - returns
+- If information is unknown, recommend contacting a human employee.
 
 Customer:
 {question}
@@ -57,9 +68,11 @@ Customer:
 
     except Exception as e:
 
+        print("ERROR:", str(e))
+
         return jsonify({
-            "answer": str(e)
-        })
+            "answer": f"AI Error: {str(e)}"
+        }), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
