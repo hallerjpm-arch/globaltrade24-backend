@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # <--- Importar CORS
 from huggingface_hub import InferenceClient
 import os
 
 app = Flask(__name__)
+CORS(app)  # <--- Habilitar CORS para todas las rutas
 
-# Definimos el modelo directamente en el cliente o en la llamada
 client = InferenceClient(
     model="google/gemma-2-2b-it",
     token=os.getenv("HF_TOKEN")
@@ -17,7 +18,6 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json() or {}
-
     question = data.get("question", "")
     language = data.get("language", "de")
 
@@ -71,6 +71,5 @@ Customer:
         }), 500
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
